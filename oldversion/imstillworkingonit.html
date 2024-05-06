@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+    
+    body {
+      background-color: black;
+      color: white;
+      user-select: none;
+      margin: 0;
+      font-size: 1.5rem;
+      font-family: Roboto;
+    }
+    #game {
+      background-color: blue;
+      width: calc(100vw - 32rem);
+      float: right;
+      height: 100vh;
+    }
+    #ui {
+      font-family: Material Icons;
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 3rem;
+      margin-bottom: 1.5rem;
+    }
+    #ui > div {
+      display: inline;
+      margin: 0 0.5rem;
+      cursor: pointer;
+      transition: 0.125s;
+      color: gray;
+    }
+    #ui > div:hover {
+      color: white;
+    }
+    canvas {
+      image-rendering: pixelated;
+      display: block;
+      position: absolute;
+      transform: scale(1);
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    #menu {
+      height: 100vh;
+      width: 32rem;
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="ui">
+      <div id="ui-stopstart" title="stop simulation" onclick="stopStart(false)">pause</div>
+      <div id="ui-generation" title="edit rules" onclick="if (!running) generation()">arrow_forward</div>
+      <!--<div title="info">info</div>
+      <div title="edit rules">settings</div>
+      <div title="regenerate world" onclick="">public</div>
+      <div title="draw on grid">edit</div>
+      <div title="use presets">source</div>-->
+    </div>
+    <canvas id="myCanvas"></canvas>
+  </div>
+  <div id="menu">Text</div>
+  <script>
+    let canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    
+    //Define rules
+    let state = {empty: {qty: 8, cmd: [{type: "neighbor", against: "white", compare: "=", amount: 3, cmd: [{type: "become", become: "white"}]}]},black: {qty: 0, cmd: [{type: "neighbor", against: "white", compare: "=", amount: 3, cmd: [{type: "become", become: "white"}]}]},white: {qty: 1, cmd: [{type: "neighbor", against: "white", compare: "<", amount: 2, cmd: [{type: "become", become: "black"}]},{type: "neighbor", against: "white", compare: ">", amount: 3, cmd: [{type: "become", become: "black"}]}]}};
+    
+    //state = {empty: {qty: 8, cmd: [{type: "neighbor", against: "star", compare: "=", amount: 3, cmd: [{type: "become", become: "star"}]}]},star: {qty: 1, cmd: [{type: "neighbor", against: "star", compare: "<", amount: 2, cmd: [{type: "become", become: "empty"}]},{type: "neighbor", against: "star", compare: ">", amount: 3, cmd: [{type: "become", become: "empty"}]}]}};
+    
+    //state = { empty: {qty: 1, cmd: [ {type: "chance", probability: 0.01, cmd: [ {type: "become", become: "green"} ]} ]}, green: {qty: 0, cmd: [ {type: "chance", probability: 0.002, cmd: [ {type: "become", become: "red"} ]}, {type: "neighbor", against: "red", compare: ">", amount: 0, cmd: [ {type: "become", become: "red"} ]} ]}, red: {qty: 0, cmd: [ {type: "chance", probability: 0.5, cmd: [ {type: "become", become: "empty"} ]} ]} };
+    
+    //state = {green:{qty: 1, cmd:[{type: "neighbor", against: "water", compare: ">", amount: 4, cmd: [{type: "become", become: "water"}]}]},water: {qty: 1, cmd: [{type: "neighbor", against: "green", compare: ">", amount: 4, cmd: [{type: "become", become: "green"}]}]}};
+    
+    //Map
+    let width = 32;
+    let height = 24;
+    let worldLoop = true;
+    let visScale = 24;
+    canvas.width = visScale*width;
+    canvas.height = visScale*height;
+    let map;
+    let newGen;
+    newMap();
+    
+    function newMap() {
+      let row = [];
+      let bucket = [];
+      Object.keys(state).forEach(function(s){
+        for (i = 0; i < state[s].qty; i++) bucket.push(s);
+      });
+      for (i = 0; i < width*height; i++) row.push(bucket[Math.floor(Math.random()*bucket.length)]);
+      canvas.width = visScale*width;
+      canvas.height = visScale*height;
+      map = row;
+      newGen = row;
+    }
+    
+    //Generations
+    let clock = 0;
+    function generation() {
+      newGen = map.slice(); //write to newGen, read from map
+      for (i = 0; i < map.length; i++) {
+        state[map[i]].cmd.forEach(function(command){runCmd(i,command)});
+      }
+      map = newGen.slice();
+      clock++;
+      display();
+    }
+    
+    function runCmd(i,cmd) {
+      switch (cmd.type) {
+        case "become":
+          newGen[i] = cmd.become;
+          break;
+        case "chance":
+          if (Math.random() < cmd.probability) {
+            cmd.cmd.forEach(function(command){runCmd(i,command)});
+          }
+          break;
+        case "neighbor":
+          let count = countNeighbors(i,cmd.against);
+          switch (cmd.compare) {
+            case ">":
+              if (count > cmd.amount) cmd.cmd.forEach(function(command){runCmd(i,command)});
+              break;
+            case "=":
+              if (count == cmd.amount) cmd.cmd.forEach(function(command){runCmd(i,command)});
+              break;
+            case "<":
+              if (count < cmd.amount) cmd.cmd.forEach(function(command){runCmd(i,command)});
+              break;
+          }
+          break;
+      }
+    }
+    
+    function getNeighborsOf(i) {
+      let neighbors = [];
+      let x = i % width;
+      let y = Math.floor(i / width);
+      [[x-1,y-1],[x-1,y],[x-1,y+1],[x,y-1],[x,y+1],[x+1,y-1],[x+1,y],[x+1,y+1]].forEach(function(coord){
+        let x = coord[0];
+        let y = coord[1];
+        if (0 <= x && x < width && 0 <= y && y < height) {
+          neighbors.push(x+width*y);
+        } else if (worldLoop) {
+          if (x < 0) x += width;
+          if (x >= width) x -= width;
+          if (y < 0) y += height;
+          if (y >= height) y -= height;
+          neighbors.push(x+width*y);
+        }
+      });
+      return neighbors;
+    }
+    
+    function countNeighbors(i,targetType) {
+      let count = 0;
+      getNeighborsOf(i).forEach(function(neighborIndex){
+        if (map[neighborIndex] == targetType) count++;
+      });
+      return count;
+    }
+    
+    //Rendering
+    let offset = [];
+    map.forEach(function(a){offset.push(Math.floor(Math.random()*3))});
+    Object.keys(state).forEach(function(s){
+      state[s].icon = [new Image(visScale,visScale),new Image(visScale,visScale),new Image(visScale,visScale)];
+      state[s].icon[0].src = "icon/"+s+"0.png";
+      state[s].icon[1].src = "icon/"+s+"1.png";
+      state[s].icon[2].src = "icon/"+s+"2.png";
+    });
+    function display() {
+      for (i = 0; i < map.length; i++) {
+        ctx.drawImage(state[map[i]].icon[(offset[i]+clock)%3],visScale*(i%width),visScale*Math.floor(i/width));
+      }
+    }
+    let running = true;
+    setTimeout(function(){
+      display();
+      setInterval(function(){
+        if (running) generation();
+      },1000/5);
+    },1000/5);
+    
+    function stopStart(makeIt) {
+      running = makeIt;
+      document.getElementById("ui-stopstart").setAttribute("onclick",(!running ? "stopStart(true)" : "stopStart(false)"));
+      document.getElementById("ui-stopstart").innerText = (!running ? "play_arrow" : "pause");
+      document.getElementById("ui-stopstart").setAttribute("title",(!running ? "start simulation" : "stop simulation"));
+    }
+    
+    //Drawing on map
+    let interval_;
+    let cursorX = 0;
+    let cursorY = 0;
+    let drawingState = Object.keys(state)[0];
+    canvas.onmousedown = function() {
+      let r = canvas.getBoundingClientRect();
+      interval_ = setInterval(function(){
+        let x = Math.floor((cursorX-r.left)/visScale);
+        let y = Math.floor((cursorY-r.top)/visScale);
+        map[width*y+x] = drawingState;
+        display();
+      },0);
+    }
+    canvas.onmouseup = function() {
+      clearInterval(interval_);
+    }
+    document.onmousemove = function(event) {
+      cursorX = event.pageX;
+      cursorY = event.pageY;
+    }
+  </script>
+</body>
+</html>

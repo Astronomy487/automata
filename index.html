@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,600,0,0" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+    
+    body {
+      background-color: black;
+      margin: 0;
+      color: white;
+      font-family: Inter, sans-serif;
+      user-select: none;
+      --icon-font: Material Symbols Outlined;
+    }
+    
+    main {
+      display: inline-block;
+      top: 50vh;
+      left: 60vw;
+      position: fixed;
+      transform: translate(-50%, -50%);
+    }
+    
+    #display {
+      outline: solid 0.125rem #444;
+      outline-offset: 8px;
+      margin: 1rem;
+      border-collapse: collapse;
+      table-layout: fixed;
+      border-spacing: 0;
+      border-radius: 0.5rem;
+    }
+    
+    #display td {
+      font-size: 24px;
+      line-height: 24px;
+      font-family: var(--icon-font);
+      width: 24px;
+      height: 24px;
+      text-align: center;
+    }
+    
+    #display td:hover {
+      outline: solid 0.125rem #444;
+    }
+    
+    #chips {
+      margin-left: 1rem;
+      color: #999;
+    }
+    
+    .chip {
+      display: inline-block;
+      padding-right: 1rem;
+    }
+    
+    .chip .material {
+      transform: translateY(6px);
+      display: inline-block;
+      margin-right: 0.25rem;
+    }
+    
+    .material {
+      font-family: var(--icon-font);
+      font-size: 24px;
+    }
+    
+    .chip.right {
+      margin: 0;
+      padding: 0;
+      float: right;
+      cursor: pointer;
+    }
+    
+    .chip.right:hover {
+      color: white;
+    }
+    
+    footer {
+      background-color: black;
+      height: 100vh;
+      overflow-y: scroll;
+      position: fixed;
+      z-index: 2;
+      width: 20vw;
+      border-right: solid 0.125rem #444;
+      color: #999;
+      padding: 1rem;
+      padding-top: 2rem;
+    }
+    
+    #selector {
+      text-align: center;
+    }
+    
+    .open_instructions {
+      font-family: var(--icon-font);
+      font-size: 2rem;
+      display: inline-block;
+      background-color: black;
+      width: 2.5rem;
+      height: 2.5rem;
+      text-align: center;
+      line-height: 2.5rem;
+      border-radius: 0.5rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      outline: solid 0.125rem #444;
+      cursor: pointer;
+    }
+    .open_instructions:hover {
+      outline-color: #888;
+    }
+    .open_instructions[has_rules="false"] {
+      outline-color: #000;
+      opacity: 0.5;
+    }
+    .open_instructions[selected="true"] {
+      outline-color: #ccc;
+    }
+    
+    hr {
+      height: 0.125rem;
+      background-color: #444;
+      border: none;
+    }
+    
+    #instruction_editor div {
+      border: solid 0.125rem var(--accent);
+      padding: 0.5rem 0.25rem;
+      margin: 0.5rem 0.25rem;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    
+    #instruction_editor div p {
+      margin: 0;
+      color: white;
+      text-align: center;
+      background-color: var(--accent);
+      margin: -0.5rem -0.25rem;
+      margin-bottom: 0.5rem;
+      padding: 0;
+      padding-bottom: 0.5rem;
+    }
+    
+    span.instruction_type {
+      font-size: 24px;
+      font-family: var(--icon-font);
+      transform: translateY(6px);
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+    
+    #instruction_editor h2 {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    
+    [instructiontype="neighbor"] {--accent: #19BCC7;}
+    [instructiontype="random"] {--accent: #CD2D45;}
+    [instructiontype="become"] {--accent: #4924CD;}
+    [instructiontype="neighbor"] {--accent: #17b;}
+    [instructiontype="random"] {--accent: #1b4;}
+    [instructiontype="become"] {--accent: #b21;}
+    
+    .property_chip {
+      display: block;
+    }
+    .property_chip span {
+      width: 48%;
+      font-size: inherit;
+      border: none;
+      color: #888;
+      display: inline-block;
+    }
+    .property_chip input, .property_chip select {
+      width: 48%;
+      font-size: inherit;
+      border: none;
+      background-color: inherit;
+      font-family: inherit;
+      color: #bbb;
+      display: inline-block;
+    }
+    
+    .add_instruction_button {
+      font-family: var(--icon-font);
+      font-size: 24px;
+      padding: 0.125rem 0.25rem;
+      background-color: #444;
+      margin: 0.125rem 0.25rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    .add_instruction_button:hover {
+      color: white;
+      background-color: var(--accent);
+    }
+    
+    .remove_button {
+      float: right;
+      font-size: 24px;
+      font-family: var(--icon-font);
+      border-radius: 1rem;
+      width: 24px;
+      display: inline-block;
+      height: 24px;
+      line-height: 24px;
+      cursor: pointer;
+      margin-top: 0.375rem;
+      margin-right: 0.375rem;
+    }
+    .remove_button:hover {
+      background-color: white;
+      color: black;
+    }
+    
+    input[type="range"] {
+      width: 6rem;
+      transform: translateY(6px);
+    }
+    
+    #statistics {
+      width: 32rem;
+      margin: auto;
+      font-family: var(--icon-font);
+      color: black;
+      text-align: center;
+      font-size: 24px;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    
+    #statistics span {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="statistics"></div>
+    <table id="display"></table>
+    <div id="chips"></div>
+  </main>
+  <footer>
+    <div id="selector"></div>
+    <div id="instruction_editor"></div>
+    <p>&nbsp;</p>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

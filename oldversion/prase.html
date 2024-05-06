@@ -1,0 +1,47 @@
+<script>
+  let validStates = ["white","black","red","yellow","green","blue","water","empty"];
+  let input = "black 4 {\n  neighbor white = 3 {become white}\n} \nwhite 1 {\n  neighbor white < 2 {become black}\n  neighbor white > 3 {become black}\n}";
+  console.log(input);
+  input = replace(input,"\n"," ");
+  input = replace(input,"{"," [ ");
+  input = replace(input,"}"," ] ");
+  input = replace(input,"  "," ");
+  input = replace(input,"["," {\n");
+  input = replace(input,"]","\n}\n");
+  input = replace(input,"\n ","\n");
+  input = replace(input,"\n\n","\n");
+  input = input.split("\n");
+  console.log(input.join("\n"));
+  /*at this point, input is a list of strings. every string is either:
+  a) STATE NUMBER {
+  b) become STATE
+  c) neighbor STATE >=< NUMBER {
+  d) random NUMBER/NUMBER% {
+  e) }
+  the program will now look for STATE NUMBER {, then go all the way down to the corresponding closing tag, and do getCmdListOf() excluding {}
+  */
+  //NO MORE MODIFYING input!!!
+  for (let l = 0; l < input.length; l++) {
+    let keys = input[l].split(" "); //keys is each of the keywords in a line, separated by space
+    if (validStates.includes(keys[0])) {
+      let closeLine = l+1;
+      let depth = 1;
+      while (closeLine < input.length && depth > 0) {
+        if (input[closeLine].endsWith("{")) depth++;
+        if (input[closeLine] == "}") depth--;
+        closeLine++;
+      } closeLine--;
+      console.log(l+" to "+closeLine);
+    }
+  }
+  
+  console.log(input);
+  
+  function getCmdListOf(code) {
+  }
+  
+  function replace(string, substring, replaceWith) {
+    while (string.includes(substring)) string = string.replace(substring, replaceWith);
+    return string;
+  }
+</script>
